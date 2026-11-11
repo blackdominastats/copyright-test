@@ -81,7 +81,7 @@ body{background:#f1f1f1;font-family:Roboto,"Arial",sans-serif}
 <div id="toast" class="toast hidden"></div>
 <script>
 const KEY='copyright-test-requests-v1';
-let requests=(()=>{try{const saved=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(saved)?saved:[]}catch(error){console.warn('Saved demo requests could not be read; starting with an empty list.',error);return[]}})(), tab='Removal requests', page='copyright', expanded=null, formMode=false;
+let requests=(()=>{try{const saved=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(saved)?saved.filter(r=>r&&typeof r==='object'&&!Array.isArray(r)):[]}catch(error){console.warn('Saved demo requests could not be read; starting with an empty list.',error);return[]}})(), tab='Removal requests', page='copyright', expanded=null, formMode=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function save(){try{localStorage.setItem(KEY,JSON.stringify(requests))}catch(error){console.warn('Could not save demo requests in this browser.',error);toast('Browser storage is unavailable. Your demo request may not persist after reload.')}}
 function toast(s){const t=document.getElementById('toast');t.textContent=s;t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),3200)}
@@ -103,5 +103,5 @@ function archiveReq(id){const r=requests.find(x=>x.id===id);if(r){r.bucket='arch
 function deleteReq(id){if(!confirm('Delete this demo record?'))return;requests=requests.filter(x=>x.id!==id);save();expanded=null;renderCopyright();toast('Demo record deleted')}
 function searchRequests(){const q=document.getElementById('globalSearch').value.toLowerCase();if(!q)return;const r=requests.find(x=>(x.videoTitle+x.url+x.id+x.uploader).toLowerCase().includes(q));if(r){tab='Removal requests';expanded=r.id;renderCopyright()}else toast('No matching demo requests')}
 setInterval(()=>{let changed=false;requests.forEach(r=>{if(r.status==='In progress'&&Date.now()>=r.created+r.delay){decide(r.id);changed=true}});},5000);
-render();
+try{render()}catch(error){console.error('Copyright Test failed to render:',error);const main=document.getElementById('main');if(main)main.innerHTML='<div class="card" style="margin:24px"><h2>Content detection could not load</h2><p>The page hit a browser-side error while rendering. Your saved demo requests have not been intentionally deleted.</p><pre style="white-space:pre-wrap;color:#b00020">'+String(error&&error.message||error).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</pre><button class="btn black" onclick="localStorage.removeItem(\'copyright-test-requests-v1\');location.reload()">Reset saved demo data and reload</button></div>'}
 </script></body></html>
